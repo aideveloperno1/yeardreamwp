@@ -1,0 +1,47 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local IDE settings (does not untrack existing files)
+.idea/
+.vscode/
+
+# Frontend generated files
+node_modules/
+dist/
+.next/
+
+# Generated vector databases and local sessions
+.chroma/
+chroma/
+chroma_db/
+chroma_data/
+chroma_storage/
+vector_store/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+*.db-wal
+*.db-shm
+
+# Local logs and operating system files
+logs/
+*.log
+.DS_Store
+Thumbs.db
