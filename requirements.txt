@@ -1,0 +1,19 @@
+# server
+uvicorn
+fastapi
+
+#file-upload
+python-multipart
+
+#langchain
+langchain
+langchain-core
+langchain-ollama
+langchain-text-splitters
+
+#PDF
+PyPDF2
+
+#chromadb
+chromadb
+langchain-chroma
