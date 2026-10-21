@@ -19,3 +19,7 @@ pymupdf
 #chromadb
 chromadb
 langchain-chroma
+
+# llm 모델 설정
+openai
+python-dotenv

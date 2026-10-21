@@ -1,13 +1,28 @@
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_ollama import ChatOllama
+import os
+from pathlib import Path
 
+from dotenv import load_dotenv
+from openai import OpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+
+# 프로젝트 최상위의 .env 읽기
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+
+API_KEY = os.getenv("ELICE_API_KEY")
+BASE_URL = os.getenv("ELICE_BASE_URL")
+MODEL_NAME = os.getenv("ELICE_MODEL", "claude-haiku-5-5")
+
+if not API_KEY or not BASE_URL:
+    raise ValueError(
+        ".env에 ELICE_API_KEY와 ELICE_BASE_URL을 설정해주세요."
+    )
 
 # 1. 답변 생성 모델 설정
-model = ChatOllama(
-    base_url="http://localhost:11434",model="gemma4:e4b",temperature=0.2)
-
+# model = ChatOllama(
+#     base_url="http://localhost:11434",model="gemma4:e4b",temperature=0.2)
+client = OpenAI(base_url=BASE_URL,api_key=API_KEY,timeout=120, max_retries=2)
 
 # 2. 검색 결과를 참고문서 문자열로 변환
 def format_docs(docs):
@@ -70,16 +85,55 @@ prompt = ChatPromptTemplate.from_messages([
 ])
 
 
-# 4. 검색 → 프롬프트 → LLM → 문자열 변환
+# 4. 검색 → 프롬프트 구성 → 엘리스 API → 답변 전달
 def get_answer(query: str, search):
-    chain = (
-        {
-            "query": RunnablePassthrough(),
-            "context": search | format_docs
-        }
-        | prompt | model | StrOutputParser()
+    # 4-1. 질문과 관련된 청크 검색
+    docs = search.invoke(query)
+
+    # 4-2. 검색 결과를 참고문서 문자열로 변환
+    context = format_docs(docs)
+
+    # 4-3. 기존 LangChain 프롬프트에 실제 값 넣기
+    prompt_messages = prompt.format_messages(
+        context=context,
+        query=query
     )
 
-    # 답변을 생성되는 조각 단위로 전달
-    for chunk in chain.stream(query):
-        yield chunk
+    # 4-4. LangChain 메시지를 API 요청 형식으로 변환
+    role_map = {
+        "system": "system",
+        "human": "user",
+        "ai": "assistant"
+    }
+
+    messages = [
+        {
+            "role": role_map[message.type],
+            "content": message.content
+        }
+        for message in prompt_messages
+    ]
+
+    # 4-5. 엘리스 API에 스트리밍 요청
+    stream = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=messages,
+        temperature=0.2,
+        max_completion_tokens=2048,
+        reasoning_effort="none",
+        stream=True
+    )
+
+    try:
+        for chunk in stream:
+            # 마지막 사용량 청크는 choices가 비어 있을 수 있음
+            if not chunk.choices:
+                continue
+
+            content = chunk.choices[0].delta.content
+
+            if content:
+                yield content
+
+    finally:
+        stream.close()
