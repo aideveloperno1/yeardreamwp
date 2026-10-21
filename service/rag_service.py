@@ -8,9 +8,8 @@ from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-#임베딩 함수 설정 - 도커 ollama 이용
-#로컬ollama 인경우 model="nomic-embed-text:latest" 사용함
-embed_fn = OllamaEmbeddings(base_url="http://localhost:11434",model="bge-m3:latest")
+#임베딩 함수 설정 - 로컬 ollama 이용
+embed_fn = OllamaEmbeddings(base_url="http://localhost:11434",model="nomic-embed-text:latest")
 
 # chromadb 설정 + 컬렉션설정
 client = chromadb.PersistentClient(path='./store')
