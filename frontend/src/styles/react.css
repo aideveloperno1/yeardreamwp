@@ -1,0 +1,14 @@
+.secondary-product { border-radius: 16px; border-bottom: 1px solid var(--line); }
+.mode-select { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
+.mode-select select { background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; min-height: 36px; padding: 4px 8px; }
+.live-config { padding: 12px 16px; border-top: 1px solid var(--line); }
+.live-config input { min-height: 44px; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+.live-config p { flex-basis: 100%; }
+.meta-pair { display: contents; }
+.answer-body { overflow-wrap: anywhere; white-space: pre-wrap; }
+progress { max-width: 100%; }
+.review + .review { margin-top: 12px; }
+.theme-switch button { font-size: 18px; }
+.trace-link { display: inline-flex; align-items: center; min-height: 32px; margin-left: 8px; }
+.side-text p + ul, .side-text ul + p { margin-top: 12px; }
+.toast button { color: inherit; }

@@ -1,0 +1,8 @@
+/* Pretendard v1.3.9, copyright Kil Hyung-jin. See LICENSE.txt. */
+@font-face {
+  font-family: "Haru Pretendard";
+  src: url("./PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
