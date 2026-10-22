@@ -9,15 +9,11 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 #임베딩 함수 설정 - 로컬 ollama 이용
-embed_fn = OllamaEmbeddings(base_url="http://localhost:11434",model="nomic-embed-text:latest")
+embed_fn = OllamaEmbeddings(base_url="http://localhost:11434",model="bge-m3:latest")
 
-# chromadb 설정 + 컬렉션설정
-client = chromadb.PersistentClient(path='./store')
-store = Chroma(
-    client=client,
-    collection_name='lecture',
-    embedding_function=embed_fn
-)
+client = chromadb.PersistentClient(path="./store")
+
+store = Chroma(client=client,collection_name="law_bge_m3",embedding_function=embed_fn)
 
 # 긴 조문을 추가로 나누기 위한 설정
 splitter = RecursiveCharacterTextSplitter(
@@ -134,12 +130,21 @@ def add_data(subject:str,filename:str):
     # 새 청크에 사용할 고유 ID 생성
     new_ids = [uuid4().hex for _ in docs]
 
-    # 새 청크를 먼저 임베딩하고 저장
+    # 새 청크를 먼저 임베딩하고 > bge-m3로 모델 변경 후 배치처리방식 변경
     try:
-        store.add_documents(
-            documents=docs,
-            ids=new_ids
-        )
+        batch_size = 100
+
+        print(f"전체 등록 대상: {len(docs)}개", flush=True)
+
+        for start in range(0, len(docs), batch_size):
+            end = min(start + batch_size, len(docs))
+
+            store.add_documents(
+                documents=docs[start:end],
+                ids=new_ids[start:end]
+            )
+
+            print(f"저장 완료: {end}/{len(docs)}", flush=True)
 
     except Exception:
         # 일부만 저장됐을 가능성에 대비해 새 청크 정리
