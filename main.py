@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from starlette.middleware.cors import CORSMiddleware
 
 from service.file_service import file_upload
 from service.rag_service import add_data,search_obj
@@ -8,6 +9,7 @@ from service.llm_service import get_answer
 
 
 app = FastAPI()
+app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173"],allow_methods=["*"],allow_headers=["*"])
 
 
 @app.post("/upload")
