@@ -19,5 +19,47 @@
   {
     "id": "LAW-024",
     "gold_articles": ["제42조"]
-  }
+  },
+  
+{
+  "id": "LAW-006",
+  "gold_articles": ["제13조"]
+},
+{
+  "id": "LAW-007",
+  "gold_articles": ["제13조"]
+},
+{
+  "id": "LAW-008",
+  "gold_articles": ["제13조"]
+},
+{
+  "id": "LAW-014",
+  "gold_articles": ["제24조"]
+},
+{
+  "id": "LAW-015",
+  "gold_articles": ["제24조"]
+},
+{
+  "id": "LAW-016",
+  "gold_articles": ["제26조"]
+},
+{
+  "id": "LAW-020",
+  "gold_articles": ["제31조"]
+},
+{
+  "id": "LAW-022",
+  "gold_articles": ["제34조"]
+},
+{
+  "id": "LAW-025",
+  "gold_articles": ["제42조"]
+},
+{
+  "id": "LAW-026",
+  "gold_articles": ["제42조"]
+}
+
 ]
