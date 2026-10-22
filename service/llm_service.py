@@ -90,7 +90,10 @@ def get_answer(query: str, search):
     # 4-1. 질문과 관련된 청크 검색
     docs = search.invoke(query)
 
+    yield from generate_answer(query, docs)
+
     # 4-2. 검색 결과를 참고문서 문자열로 변환
+def generate_answer(query: str, docs):
     context = format_docs(docs)
 
     # 4-3. 기존 LangChain 프롬프트에 실제 값 넣기
