@@ -30,5 +30,5 @@
 - 실제 검색 청크를 확보하지 않아 검색 근거에 대한 충실성은 미평가
 
 ## 결과 확인
-- Opik Experiment 이름:
-- Opik Experiment 링크:
+- Opik Experiment 이름: bge-m3_prompt-fixed-final-test_saved_20261022_172221
+- Opik Experiment 링크: https://www.comet.com/opik/project01/projects/01a15d4c-af14-7113-8efb-f52df64dc074/experiments/01a162b4-3931-724e-8907-cfa3622e4f82/compare?experiments=%5B%2201a162b4-3fd6-78f1-9569-c34b6127cd93%22%5D&filters=%5B%5D&height=small

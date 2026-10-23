@@ -18,7 +18,7 @@ store = Chroma(
     embedding_function=embedding
 )
 
-# 기존 평가에 사용한 동일한 5개 질문
+# 개발용 평가 질문 15개
 questions = load_eval_data()
 
 # 법령명으로 검색 범위 제한
