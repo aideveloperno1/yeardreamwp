@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/icon.png">
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+
+    <title>산업안전보건법 챗봇</title>
+
+    <style>
+        body {
+            line-height: 1.6;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        #chat-box {
+            width: 90%;
+            height: 400px;
+            border: 1px solid lightgray;
+            padding: 25px;
+            border-radius: 10px;
+            overflow-y: auto;
+        }
+
+        .user-message {
+            text-align: right;
+            margin-bottom: 20px;
+            color: #2563eb;
+            white-space: pre-wrap;
+        }
+
+        .ai-message {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        strong {
+            color: red;
+            font-weight: 600;
+        }
+
+        #input-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            width: 95%;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid lightgray;
+        }
+
+        button {
+            padding: 10px 25px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>산업안전보건기준 민원 챗봇</h1>
+
+    <!-- 채팅 화면 -->
+    <div id="chat-box"></div>
+
+    <!-- 질문 입력 -->
+    <div id="input-group">
+        <input
+            type="text"
+            id="input-box"
+            placeholder="산업안전보건기준에 대해 질문하세요."
+        >
+        <button id="send-btn" onclick="askAI()">질문하기</button>
+    </div>
+
+    <script>
+        // 1. Markdown 해석기
+        const md = window.markdownit({
+            html: false,
+            linkify: true
+        });
+
+        // 2. HTML 요소 가져오기
+        const chatBox = document.getElementById('chat-box');
+        const inputBox = document.getElementById('input-box');
+        const sendBtn = document.getElementById('send-btn');
+
+        // 3. Enter 키로 질문 전송
+        inputBox.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.isComposing) {
+                askAI();
+            }
+        });
+
+        // 4. AI 질문 함수
+        async function askAI() {
+
+            const question = inputBox.value.trim();
+
+            // 빈 질문 또는 중복 요청 방지
+            if (!question || sendBtn.disabled) {
+                return;
+            }
+
+            // 4-1. 사용자 질문 출력
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user-message';
+            userDiv.textContent = '나: ' + question;
+
+            chatBox.appendChild(userDiv);
+
+            inputBox.value = '';
+            sendBtn.disabled = true;
+
+            // 4-2. AI 답변 영역 생성
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'ai-message';
+            aiDiv.textContent = 'AI: 답변 생성 중...';
+
+            chatBox.appendChild(aiDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 전체 답변 저장 변수
+            let fullResponse = '';
+
+            try {
+                // 4-3. FastAPI 서버에 질문 전송
+                const { data } = await axios({
+                    method: 'post',
+                    url: '/ask/chat',
+                    data: {
+                        q: question
+                    },
+                    responseType: 'stream',
+                    adapter: 'fetch'
+                });
+
+                // 4-4. 스트림 리더 생성
+                const reader = data.getReader();
+                const decoder = new TextDecoder();
+
+                // 4-5. 스트리밍 응답 읽기
+                while (true) {
+
+                    const { done, value } = await reader.read();
+
+                    // 응답 종료
+                    if (done) {
+                        break;
+                    }
+
+                    // 바이너리 데이터를 문자열로 변환
+                    const chunk = decoder.decode(value, {
+                        stream: true
+                    });
+
+                    // 답변 누적
+                    fullResponse += chunk;
+
+                    // 4-6. Markdown 렌더링
+                    aiDiv.innerHTML =
+                        '<b>AI:</b> ' + md.render(fullResponse);
+
+                    // 스크롤 자동 이동
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+
+                // 디코더에 남은 데이터 처리
+                fullResponse += decoder.decode();
+
+                aiDiv.innerHTML =
+                    '<b>AI:</b> ' + md.render(fullResponse);
+
+            } catch (error) {
+
+                console.error(error);
+
+                if (!fullResponse) {
+                    aiDiv.textContent =
+                        'AI: 오류가 발생했습니다. 다시 시도해주세요.';
+                } else {
+                    aiDiv.textContent =
+                        'AI: ' + fullResponse +
+                        '\n\n[응답이 중간에 중단되었습니다.]';
+                }
+
+            } finally {
+
+                // 버튼 활성화
+                sendBtn.disabled = false;
+
+                // 입력창 포커스
+                inputBox.focus();
+
+                // 스크롤 이동
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>

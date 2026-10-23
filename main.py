@@ -7,6 +7,7 @@ from starlette.staticfiles import StaticFiles
 from service.file_service import file_upload
 from service.rag_service import add_data,search_obj
 from service.llm_service import get_answer
+from service.opik_service import get_opik_results
 
 
 app = FastAPI()
@@ -58,3 +59,16 @@ def ask_chat(info: ChatRequest):
         get_answer(query, search),
         media_type="text/plain; charset=utf-8"
     )
+
+@app.get("/admin/opik/results")
+def opik_results():
+    try:
+        return get_opik_results()
+
+    except Exception as e:
+        print(f"Opik 조회 오류: {repr(e)}", flush=True)
+
+        raise HTTPException(
+            status_code=502,
+            detail="Opik 평가 결과 조회에 실패했습니다."
+        )

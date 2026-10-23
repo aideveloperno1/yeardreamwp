@@ -20,8 +20,6 @@ if not API_KEY or not BASE_URL:
     )
 
 # 1. 답변 생성 모델 설정
-# model = ChatOllama(
-#     base_url="http://localhost:11434",model="gemma4:e4b",temperature=0.2)
 client = OpenAI(base_url=BASE_URL,api_key=API_KEY,timeout=120, max_retries=2)
 
 # 2. 검색 결과를 참고문서 문자열로 변환

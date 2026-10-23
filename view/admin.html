@@ -1,0 +1,657 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <title>산업안전보건법 RAG 관리자</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            line-height: 1.6;
+            color: #263238;
+        }
+
+        header {
+            background: #243b55;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #0000000d;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        h3 {
+            margin-top: 30px;
+            font-size: 17px;
+        }
+
+        .description {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* 법령 관리 */
+        .law-info {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .law-info strong {
+            color: #243b55;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin: 20px 0;
+            max-width: 100%;
+        }
+
+        button {
+            background: #4A90E2;
+            border: none;
+            color: white;
+            padding: 11px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #357abd;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .success {
+            color: #15803d;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+        /* Opik 대시보드 */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(180px, 1fr)
+            );
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 0;
+        }
+
+        .card .label {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .card .value {
+            font-size: 26px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .card .name {
+            font-size: 16px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        /* 지표 그래프 */
+        .metric {
+            margin: 20px 0;
+        }
+
+        .metric-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .bar-bg {
+            background: #e2e8f0;
+            height: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .bar-fill {
+            background: #4A90E2;
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        /* 평가 상세 테이블 */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f1f5f9;
+            white-space: nowrap;
+        }
+
+        td {
+            overflow-wrap: anywhere;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .score-cell {
+            white-space: pre-wrap;
+        }
+
+        .empty-message {
+            color: #64748b;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+
+        .footer-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #4A90E2;
+            text-decoration: none;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>산업안전보건법 RAG 관리자</h1>
+        <p>법령 데이터 관리 및 Opik 평가 결과 대시보드</p>
+    </header>
+
+    <main>
+
+        <!-- ========================== -->
+        <!-- 1. 법령 PDF 관리 -->
+        <!-- ========================== -->
+        <section>
+            <h2>1. 법령 PDF 관리</h2>
+
+            <p class="description">
+                산업안전보건기준에 관한 규칙의 개정 법령 PDF를
+                업로드하여 RAG 검색 데이터를 갱신합니다.
+            </p>
+
+            <div class="law-info">
+                <strong>관리 대상 법령</strong>
+                <p>산업안전보건기준에 관한 규칙</p>
+            </div>
+
+            <label for="pdf-file">개정 법령 PDF 선택</label>
+
+            <input
+                type="file"
+                id="pdf-file"
+                accept=".pdf,application/pdf"
+            >
+
+            <button id="upload-btn" onclick="uploadPDF()">
+                법령 파일 업로드
+            </button>
+
+            <div
+                id="upload-status"
+                class="status"
+                role="status"
+                aria-live="polite"
+            ></div>
+
+            <p class="description">
+                새 PDF가 등록되면 백엔드에서 조문별 청킹과
+                임베딩 작업을 수행합니다.
+                기존 법령 청크 교체는 서버의 등록 로직에서 처리합니다.
+            </p>
+        </section>
+
+
+        <!-- ========================== -->
+        <!-- 2. Opik 평가 대시보드 -->
+        <!-- ========================== -->
+        <section>
+            <h2>2. Opik 최종 평가 대시보드</h2>
+
+            <p class="description">
+                Opik에 저장된 산업안전보건법 RAG 챗봇의
+                최종 평가 실험 결과를 조회합니다.
+            </p>
+
+            <button id="refresh-btn" onclick="loadOpik()">
+                평가 결과 새로고침
+            </button>
+
+            <div
+                id="opik-status"
+                class="status"
+                role="status"
+                aria-live="polite"
+            ></div>
+
+            <!-- 평가 요약 카드 -->
+            <div class="cards">
+
+                <div class="card">
+                    <div class="label">실험명</div>
+                    <div class="name" id="experiment-name">-</div>
+                </div>
+
+                <div class="card">
+                    <div class="label">평가 건수</div>
+                    <div class="value" id="total-count">-</div>
+                </div>
+
+                <div class="card">
+                    <div class="label">평가 지표 수</div>
+                    <div class="value" id="metric-count">-</div>
+                </div>
+
+            </div>
+
+            <!-- 지표별 평균 점수 -->
+            <h3>평가 지표별 평균 점수</h3>
+
+            <p class="description">
+                각 평가 지표의 평균 점수를 표시합니다.
+                그래프는 0~1 범위의 점수에 적용됩니다.
+            </p>
+
+            <div id="metric-chart">
+                <p class="empty-message">
+                    평가 결과를 불러오면 그래프가 표시됩니다.
+                </p>
+            </div>
+
+            <!-- 상세 평가 결과 -->
+            <h3>질문별 평가 결과</h3>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>질문</th>
+                            <th>평가 점수</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="result-body">
+                        <tr>
+                            <td colspan="3">
+                                평가 데이터를 조회하고 있습니다.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <a
+                class="footer-link"
+                href='https://www.comet.com/opik/project01/projects/01a15d4c-af14-7113-8efb-f52df64dc074/experiments/01a162b4-3fd6-78f1-9569-c34b6127cd93'
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Opik 실험 원본 확인 ↗
+            </a>
+        </section>
+
+    </main>
+
+
+    <script>
+        // ======================================
+        // 1. 법령 PDF 업로드
+        // ======================================
+
+        async function uploadPDF() {
+
+            const fileInput = document.getElementById('pdf-file');
+            const uploadBtn = document.getElementById('upload-btn');
+            const status = document.getElementById('upload-status');
+
+            const file = fileInput.files[0];
+
+            // 파일 선택 확인
+            if (!file) {
+                alert('PDF 파일을 선택해주세요.');
+                return;
+            }
+
+            // PDF 확장자 확인
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                alert('PDF 파일만 업로드할 수 있습니다.');
+                return;
+            }
+
+            // 업로드 확인
+            if (!confirm(
+                '선택한 PDF를 등록하시겠습니까?\n' +
+                '등록 완료 시 기존 법령 청크가 교체됩니다.'
+            )) {
+                return;
+            }
+
+            // 파일 업로드용 FormData 객체
+            const formData = new FormData();
+
+            // 백엔드 /upload API가 요구하는 subject
+            formData.append(
+                'subject',
+                '산업안전보건기준에 관한 규칙'
+            );
+
+            // 백엔드 /upload API가 요구하는 file
+            formData.append('file', file);
+
+            uploadBtn.disabled = true;
+            fileInput.disabled = true;
+
+            status.className = 'status';
+            status.textContent =
+                'PDF 업로드 및 RAG 데이터 등록 중...\n' +
+                '임베딩 작업으로 시간이 소요될 수 있습니다.';
+
+            try {
+                // FastAPI 업로드 API 호출
+                const { data } = await axios.post(
+                    '/upload',
+                    formData
+                );
+
+                status.className = 'status success';
+                status.textContent =
+                    '법령 등록 완료!\n' +
+                    '파일명: ' + (data.upload || []).join(', ');
+
+                // 파일 선택 초기화
+                fileInput.value = '';
+
+            } catch (error) {
+
+                console.error('파일 업로드 오류:', error);
+
+                status.className = 'status error';
+
+                status.textContent =
+                    '법령 등록 실패: ' +
+                    (
+                        error.response?.data?.detail
+                        || error.message
+                    );
+
+            } finally {
+
+                uploadBtn.disabled = false;
+                fileInput.disabled = false;
+            }
+        }
+
+
+        // ======================================
+        // 2. Opik 평가 결과 조회
+        // ======================================
+
+        async function loadOpik() {
+
+            const status = document.getElementById('opik-status');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const chart = document.getElementById('metric-chart');
+            const tbody = document.getElementById('result-body');
+
+            refreshBtn.disabled = true;
+
+            status.className = 'status';
+            status.textContent = 'Opik 평가 결과 조회 중...';
+
+            try {
+                // FastAPI에서 Opik 평가 데이터 가져오기
+                const { data } = await axios.get(
+                    '/admin/opik/results'
+                );
+
+                // ------------------------------
+                // 2-1. 평가 요약 정보
+                // ------------------------------
+
+                document.getElementById(
+                    'experiment-name'
+                ).textContent = data.experiment_name || '-';
+
+                document.getElementById(
+                    'total-count'
+                ).textContent = data.total ?? 0;
+
+                const averages = data.averages || {};
+                const entries = Object.entries(averages);
+
+                document.getElementById(
+                    'metric-count'
+                ).textContent = entries.length;
+
+
+                // ------------------------------
+                // 2-2. 평균 점수 그래프
+                // ------------------------------
+
+                // 기존 그래프 제거
+                chart.replaceChildren();
+
+                if (entries.length === 0) {
+                    const empty = document.createElement('p');
+                    empty.className = 'empty-message';
+                    empty.textContent =
+                        '조회된 평가 점수가 없습니다.';
+                    chart.appendChild(empty);
+                }
+
+                for (const [name, score] of entries) {
+
+                    const metric = document.createElement('div');
+                    metric.className = 'metric';
+
+                    // 지표명과 점수 표시
+                    const title = document.createElement('div');
+                    title.className = 'metric-title';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = name;
+
+                    const scoreSpan = document.createElement('strong');
+                    scoreSpan.textContent = Number(score).toFixed(3);
+
+                    title.append(nameSpan, scoreSpan);
+
+                    // 그래프 배경
+                    const barBg = document.createElement('div');
+                    barBg.className = 'bar-bg';
+
+                    // 점수 막대
+                    const bar = document.createElement('div');
+                    bar.className = 'bar-fill';
+
+                    // 0~1 사이 점수를 백분율로 표시
+                    const percent =
+                        Math.max(0, Math.min(1, Number(score))) * 100;
+
+                    bar.style.width = percent + '%';
+
+                    barBg.appendChild(bar);
+
+                    metric.append(title, barBg);
+                    chart.appendChild(metric);
+                }
+
+
+                // ------------------------------
+                // 2-3. 질문별 평가 상세 결과
+                // ------------------------------
+
+                // 이전 테이블 데이터 제거
+                tbody.replaceChildren();
+
+                const results = data.results || [];
+
+                if (results.length === 0) {
+
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+
+                    td.colSpan = 3;
+                    td.textContent = '평가 상세 데이터가 없습니다.';
+
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+
+                } else {
+
+                    results.forEach((item, index) => {
+
+                        const tr = document.createElement('tr');
+
+                        // 번호
+                        const noTd = document.createElement('td');
+                        noTd.textContent = index + 1;
+
+                        // 질문
+                        const questionTd = document.createElement('td');
+                        questionTd.textContent =
+                            item.question || '-';
+
+                        // 평가 지표별 점수
+                        const scoreTd = document.createElement('td');
+                        scoreTd.className = 'score-cell';
+
+                        const scoreEntries = Object.entries(
+                            item.scores || {}
+                        );
+
+                        scoreTd.textContent = scoreEntries.length
+                            ? scoreEntries
+                                .map(([name, value]) =>
+                                    `${name}: ${value}`
+                                )
+                                .join('\n')
+                            : '-';
+
+                        tr.append(
+                            noTd,
+                            questionTd,
+                            scoreTd
+                        );
+
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                // 조회 완료 메시지
+                status.className = 'status success';
+                status.textContent =
+                    'Opik 평가 결과 조회 완료';
+
+            } catch (error) {
+
+                console.error('Opik 조회 오류:', error);
+
+                status.className = 'status error';
+
+                status.textContent =
+                    'Opik 조회 실패: ' +
+                    (
+                        error.response?.data?.detail
+                        || error.message
+                    );
+
+            } finally {
+
+                refreshBtn.disabled = false;
+            }
+        }
+
+
+        // ======================================
+        // 3. 관리자 페이지 실행 시 자동 조회
+        // ======================================
+
+        loadOpik();
+
+    </script>
+
+</body>
+</html>
