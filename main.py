@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 
 from service.file_service import file_upload
 from service.rag_service import add_data,search_obj
@@ -10,7 +11,7 @@ from service.llm_service import get_answer
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173"],allow_methods=["*"],allow_headers=["*"])
-
+app.mount("/view", StaticFiles(directory="view"),name="view")
 
 @app.post("/upload")
 def upload(
@@ -36,23 +37,24 @@ def upload(
 
 class ChatRequest(BaseModel):
     q: str
-    subject: str
 
 
 @app.post("/ask/chat")
 def ask_chat(info: ChatRequest):
     query = info.q.strip()
-    subject = info.subject.strip()
 
-    if not query or not subject:
+    if not query:
         raise HTTPException(
             status_code=400,
-            detail="질문과 법령명을 입력해주세요."
+            detail="질문을 입력해주세요."
         )
+
+    # 법령명 고정
+    subject = "산업안전보건기준에 관한 규칙"
 
     search = search_obj(subject)
 
     return StreamingResponse(
         get_answer(query, search),
-        media_type="text/plain"
+        media_type="text/plain; charset=utf-8"
     )
